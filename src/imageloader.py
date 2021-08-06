@@ -55,10 +55,10 @@ class TripletImageLoader(Dataset):
         else:
             singletons = []
             test_images = os.listdir(os.path.join(
-                "../tiny-imagenet-200", "val", "images"))
+                "../"+self.base_path, "bounding_box_test"))
             for test_image in test_images:
                 loaded_image = self.loader(os.path.join(
-                    "../tiny-imagenet-200", "val", "images", test_image))
+                    "../"+self.base_path, "bounding_box_test", test_image))
                 singletons.append(loaded_image)
             self.singletons = singletons
 
