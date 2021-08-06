@@ -110,10 +110,11 @@ def train(net, criterion, optimizer, scheduler, trainloader,
             optimizer.step()
 
             # print statistics
-            running_loss += loss.data[0]
+            print("--------------------------------------------------",loss.data.item())
+            running_loss += loss.data.item()
 
             if batch_idx % 30 == 0:
-                print("mini Batch Loss: {}".format(loss.data[0]))
+                print("mini Batch Loss: {}".format(loss.data.item()))
 
         # Normalizing the loss by the total number of train batches
         running_loss /= len(trainloader)
