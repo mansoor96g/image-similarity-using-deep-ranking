@@ -1,8 +1,6 @@
 """
 Image Similarity using Deep Ranking.
-
 references: https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/42945.pdf
-
 @author: Zhenye Na
 """
 
@@ -16,6 +14,7 @@ import torch.utils.data
 import torchvision.transforms as transforms
 from torch.utils.data.dataset import Dataset
 
+from sampler import list_pictures
 
 def image_loader(path):
     """Image Loader helper function."""
@@ -29,7 +28,6 @@ class TripletImageLoader(Dataset):
                  train=True, loader=image_loader):
         """
         Image Loader Builder.
-
         Args:
             base_path: path to triplets.txt
             filenames_filename: text file with each line containing the path to an image e.g., `images/class1/sample.JPEG`
@@ -54,11 +52,11 @@ class TripletImageLoader(Dataset):
         # load test data
         else:
             singletons = []
-            test_images = os.listdir(os.path.join(
-                "../"+self.base_path, "bounding_box_test"))
+            test_images = list_pictures(os.path.join(
+                    self.base_path, "bounding_box_test"), ext='jpg')
             for test_image in test_images:
                 loaded_image = self.loader(os.path.join(
-                    "../"+self.base_path, "bounding_box_test", test_image))
+                    self.base_path, "bounding_box_test", test_image))
                 singletons.append(loaded_image)
             self.singletons = singletons
 
