@@ -5,7 +5,7 @@ references: https://static.googleusercontent.com/media/research.google.com/en//p
 
 @author: Zhenye Na
 """
-
+from sampler import *
 import time
 import argparse
 
@@ -49,6 +49,7 @@ def calculate_accuracy(trainloader, testloader, is_gpu):
     checkpoint = torch.load("../checkpointcheckpoint.pth.tar")
     net.load_state_dict(checkpoint['state_dict'], strict=False)
 
+    # model.load_state_dict(torch.load(PATH), strict=False)
 
     net.eval()
 
@@ -159,7 +160,7 @@ def calculate_accuracy(trainloader, testloader, is_gpu):
     print("Test accuracy {}%".format(avg_acc))
 
 
-def get_classes(filename="../tiny-imagenet-200/val/val_annotations.txt"):
+def get_classes(filename="./src/market1501/Market-1501-v15.09.15/query"):
     """
     Get corresponding class name for each val image.
 
@@ -169,10 +170,11 @@ def get_classes(filename="../tiny-imagenet-200/val/val_annotations.txt"):
     Returns:
         class_dict: A dictionary which maps from image name to class name
     """
+    imagae_names = list_pictures(filename)
     class_dict = {}
-    for line in open(filename):
-        line_array = line.rstrip("\n").split("\t")
-        class_dict[line_array[0]] = line_array[1]
+    for image in imagae_names:
+        line_array = image.split("_")[0] 
+        class_dict[line_array[0]] = image
 
     return class_dict
 
