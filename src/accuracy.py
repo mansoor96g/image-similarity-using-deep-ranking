@@ -47,7 +47,8 @@ def calculate_accuracy(trainloader, testloader, is_gpu):
 
     print('==> Retrieve model parameters ...')
     checkpoint = torch.load("../checkpointcheckpoint.pth.tar")
-    net.load_state_dict(checkpoint['state_dict'])
+    net.load_state_dict(checkpoint['state_dict'], strict=False)
+
 
     net.eval()
 
