@@ -5,7 +5,7 @@ references: https://static.googleusercontent.com/media/research.google.com/en//p
 
 @author: Zhenye Na
 """
-
+import glob
 import time
 import argparse
 
@@ -67,15 +67,15 @@ def load_net(is_gpu):
         cudnn.benchmark = True
 
     print('==> Retrieve model parameters ...')
-    checkpoint = torch.load("../checkpoint/checkpointcheckpoint.pth.tar")
+    checkpoint = torch.load("../checkpointcheckpoint.pth.tar")
     # start_epoch = checkpoint['epoch']
     # best_prec1 = checkpoint['best_prec1']
-    net.load_state_dict(checkpoint['state_dict'])
+    net.load_state_dict(checkpoint['state_dict'], strict=False)
 
     net.eval()
     return net
 
-def plot_results(query, top_N, results, images):
+def plot_results(query, top_N, results, images, dataroot):
     """
     Plot the query image and top N similar images
     Args:
@@ -86,7 +86,11 @@ def plot_results(query, top_N, results, images):
     """
     fig = plt.figure()
     ax = fig.add_subplot(1, top_N+1, 1)
-    imgplot = plt.imshow(np.asarray(Image.open(query)))
+    try:
+      imgplot = plt.imshow(np.asarray(Image.open(dataroot  +"/"+ query)))
+    except:
+      imgplot = plt.imshow(np.asarray(Image.open(query)))
+
     ax.set_title("Query")
     
     for indx, val in enumerate(results[1][0]):
@@ -94,7 +98,7 @@ def plot_results(query, top_N, results, images):
             break
         else:
             ax = fig.add_subplot(1, top_N+1, indx+2)
-            a = np.asarray(Image.open(images[val]))
+            a = np.asarray(Image.open(dataroot +"/"+ images[val]))
             plt.axis('off')
             imgplot = plt.imshow(a)
     
@@ -149,10 +153,10 @@ def train_neighbor_model(embedding_data, K=500):
     # n_neighbors is 500 because there are 200 classes and 100,000 images in training space
     neighbor_model = NearestNeighbors(n_neighbors=500, algorithm='kd_tree', n_jobs=-1)
     neighbor_model.fit(embedding_data)
-    dump(neighbor_model, 'models/neighbor_model.joblib')
+    dump(neighbor_model, 'neighbor_model.joblib')
     return neighbor_model
 
-def predict_unseen(test_query, top_N, training_images, embedding_space, is_gpu):
+def predict_unseen(test_query, top_N, training_images, embedding_space, is_gpu, dataroot):
     """
     Predict similar images from embedding space
      Args:
@@ -163,8 +167,8 @@ def predict_unseen(test_query, top_N, training_images, embedding_space, is_gpu):
     Returns: void
         plot top_N similar images as query image and save the results as (Image_Search_Results.jpg)
     """
-    if os.path.isfile('checkpoints/neighbor_model.joblib'):
-        neighbor_model = load('models/neighbor_model.joblib')
+    if os.path.isfile('neighbor_model.joblib'):
+        neighbor_model = load('neighbor_model.joblib')
     else:
         neighbor_model = train_neighbor_model(embedding_space)
           
@@ -176,7 +180,7 @@ def predict_unseen(test_query, top_N, training_images, embedding_space, is_gpu):
     
     predictions = neighbor_model.kneighbors(query_embed)
     
-    plot_results(test_query, top_N, predictions, training_images)
+    plot_results(test_query, top_N, predictions, training_images, dataroot)
     
 def get_classes(filename="../tiny-imagenet-200/val/val_annotations.txt"):
     """
@@ -200,7 +204,7 @@ def main():
     # Instantiate the parser
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--dataroot', type=str, default="",
+    parser.add_argument('--dataroot', type=str, default="./market1501/Market-1501-v15.09.15/bounding_box_train",
                         help='train/val data root')
     
     parser.add_argument('--batch_size_train', type=int, default=25, 
@@ -229,7 +233,7 @@ def main():
     embedding_space = load_train_embedding()
     
     if args.predict_similar_images != "":
-        predict_unseen(args.predict_similar_images, args.predict_top_N, training_images, embedding_space, args.is_gpu)
+        predict_unseen(args.predict_similar_images, args.predict_top_N, training_images, embedding_space, args.is_gpu, args.dataroot)
     else:
         # calculate test accuracy
         calculate_accuracy(training_images, embedding_space, testloader, args.is_gpu)
